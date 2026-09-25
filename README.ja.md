@@ -46,6 +46,14 @@ Jellyfin／Emby 向けに開発された、とても便利なメタデータプ�
 
 _※本プロジェクトは Jellyfin／Emby の安定版のみをサポートしています。_
 
+## Jellyfin 12（このフォーク）
+
+このフォークは Jellyfin 12 向けのビルドを公開しています。ダッシュボード → プラグイン → リポジトリで下記のリポジトリを追加し、上流の MetaTube リポジトリは削除してください。Jellyfin は旧バージョン向けのプラグインも受け入れるため、10.x 向けの上流の新しいリリースがこのビルドを置き換え、読み込みに失敗する可能性があります。
+
+```
+https://raw.githubusercontent.com/gIt-SpLasHeR/jellyfin-plugin-metatube/dist/manifest.json
+```
+
 ## ドキュメント
 
 - [プラグインのインストール](https://metatube-community.github.io/wiki/plugin-installation/)

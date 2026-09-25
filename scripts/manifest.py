@@ -5,8 +5,12 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from urllib.error import HTTPError
 from urllib.request import urlopen
 from packaging.version import Version
+
+UPSTREAM_REPOSITORY = 'metatube-community/jellyfin-plugin-metatube'
+REPOSITORY = os.environ.get('GITHUB_REPOSITORY', UPSTREAM_REPOSITORY)
 
 
 def md5sum(filename) -> str:
@@ -30,11 +34,24 @@ def generate(filename, version, csproj) -> dict:
         'checksum': md5sum(filename),
         'changelog': 'Auto Released by Actions',
         'targetAbi': f'{get_jellyfin_version(csproj)}.0',
-        'sourceUrl': 'https://github.com/metatube-community/jellyfin-plugin-metatube/releases/download/'
+        'sourceUrl': f'https://github.com/{REPOSITORY}/releases/download/'
                      f'v{version}/Jellyfin.MetaTube@v{version}.zip',
         'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'version': version
     }
+
+
+def load_manifest() -> list:
+    # A fork has no dist branch until its first release, so start from the upstream manifest.
+    for repository in dict.fromkeys((REPOSITORY, UPSTREAM_REPOSITORY)):
+        try:
+            with urlopen(f'https://raw.githubusercontent.com/{repository}/dist/manifest.json') as f:
+                return json.load(f)
+        except HTTPError as e:
+            if e.code != 404:
+                raise
+
+    raise Exception("Manifest not found")
 
 
 def main() -> None:
@@ -46,9 +63,7 @@ def main() -> None:
     csproj = os.path.join(os.path.dirname(__file__),
                           "../Jellyfin.Plugin.MetaTube/Jellyfin.Plugin.MetaTube.csproj")
 
-    with urlopen(
-            'https://raw.githubusercontent.com/metatube-community/jellyfin-plugin-metatube/dist/manifest.json') as f:
-        manifest = json.load(f)
+    manifest = load_manifest()
 
     manifest[0]['versions'].insert(0, generate(filename, version, csproj))
 
